@@ -1,10 +1,26 @@
-# -*- coding: utf-8 -*-
+# import h5py
+# import binary_ops
+# import pandas as pd
+# import numpy as np
+# f = h5py.File('mlp.h5','r')
+# g = f['model_weights']
+# d = g['dense']; d = d['dense'];k = d['kernel:0'][()]
+# d1 = g['dense1']; d1 = d1['dense1'];k1 = d1['kernel:0'][()]
+# d2 = g['dense2']; d2 = d2['dense2'];k2 = d2['kernel:0'][()]
+# d3 = g['dense3']; d3 = d3['dense3'];k3 = d3['kernel:0'][()]
+# kernels = [k,k1,k2,k3]
+# for i in range(len(kernels)):
+#     ker = kernels[i]
+#     a = pd.DataFrame(np.array(binary_ops.binarize(ker)))
+#     a.to_csv('kernels'+str(i)+'.csv',index=False)
+
+
+
 
 # 训练二值化的全连接神经网络, 在 MNIST 数据集上面实验.
 
 import numpy as np
 np.random.seed(37)
-
 import keras.backend as K
 import matplotlib.pyplot as plt
 from keras.datasets import mnist
@@ -13,7 +29,6 @@ from keras.layers import Dense, Dropout, Activation, BatchNormalization
 from keras.optimizers import SGD, Adam, RMSprop
 from keras.callbacks import LearningRateScheduler
 from keras.utils import np_utils
-
 from binary_ops import binary_tanh as binary_tanh_op
 from binary_layers import BinaryDense, Clip
 
@@ -63,13 +78,10 @@ drop_hidden = 0.25
 
 # 下载 MNIST 数据集, 分为训练和测试数据
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
-
+X_train[X_train>0] = 1          # 换为01输入
+X_test[X_test>0] = 1
 X_train = X_train.reshape(60000, 784)
 X_test = X_test.reshape(10000, 784)
-X_train = X_train.astype('float32')
-X_test = X_test.astype('float32')
-X_train /= 255
-X_test /= 255
 print(X_train.shape[0], 'train samples')
 print(X_test.shape[0], 'test samples')
 
@@ -112,11 +124,11 @@ Y_test = np_utils.to_categorical(y_test, nb_classes) * 2 - 1
 #
 # # 保存和重新加载模型
 # model.save('mlp.h5')
-
-model = load_model('mlp0.h5', custom_objects={'DropoutNoScale': DropoutNoScale,
-                                             'BinaryDense': BinaryDense,
-                                             'Clip': Clip, 
-                                             'binary_tanh': binary_tanh})
+#
+model = load_model('mlp.h5', custom_objects={'DropoutNoScale': DropoutNoScale,
+                                              'BinaryDense': BinaryDense,
+                                              'Clip': Clip,
+                                              'binary_tanh': binary_tanh})
 
 score = model.evaluate(X_test, Y_test, verbose=0)
 print('Test score:', score[0])
